@@ -1,4 +1,5 @@
 import react, { useState } from "react";
+import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
   ImageBackground,
@@ -20,6 +21,7 @@ const initialState = {
 
 export const RegistrationScreen = () => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+  const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
 
   const keyboardHide = () => {
@@ -34,9 +36,7 @@ export const RegistrationScreen = () => {
     setState(initialState);
   };
 
-  const changeInput = (name, value) => {
-    setState((prevState) => ({ ...prevState, name: value }));
-  };
+  const onPress = () => setIsShowPassword(!isShowPassword);
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -63,6 +63,18 @@ export const RegistrationScreen = () => {
                   },
                 ]}
               ></View>
+              <TouchableOpacity
+                style={[
+                  styles.addPhotoBtn,
+                  {
+                    transform: [{ translateX: 48 }],
+                  },
+                ]}
+                activeOpacity={0.8}
+              >
+                <AntDesign name="pluscircleo" size={25} color="#ff6c00" />
+              </TouchableOpacity>
+
               <Text style={styles.registerTittle}>Регистрация</Text>
               <View style={styles.form}>
                 <TextInput
@@ -102,30 +114,40 @@ export const RegistrationScreen = () => {
                     }));
                   }}
                 ></TextInput>
-                <TextInput
-                  style={{
-                    ...styles.input,
-                    marginBottom: 43,
-                    backgroundColor: state.password ? "#fff" : "#f6f6f6",
-                    borderColor: state.password ? "#ff6c00" : "#e8e8e8",
-                  }}
-                  placeholder="Пароль"
-                  placeholderTextColor="#bdbdbd"
-                  secureTextEntry={true}
-                  value={state.password}
-                  onFocus={() => {
-                    setIsShowKeyboard(true);
-                  }}
-                  onChangeText={(value) => {
-                    setState((prevState) => ({
-                      ...prevState,
-                      password: value,
-                    }));
-                  }}
-                ></TextInput>
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    style={{
+                      ...styles.input,
+                      backgroundColor: state.password ? "#fff" : "#f6f6f6",
+                      borderColor: state.password ? "#ff6c00" : "#e8e8e8",
+                    }}
+                    placeholder="Пароль"
+                    placeholderTextColor="#bdbdbd"
+                    secureTextEntry={!isShowPassword}
+                    value={state.password}
+                    onFocus={() => {
+                      setIsShowKeyboard(true);
+                    }}
+                    onChangeText={(value) => {
+                      setState((prevState) => ({
+                        ...prevState,
+                        password: value,
+                      }));
+                    }}
+                  ></TextInput>
+                  <Text
+                    style={{
+                      ...styles.showPaswordTxt,
+                      transform: [{ translateY: -10 }],
+                    }}
+                    onPress={onPress}
+                  >
+                    {!isShowPassword ? "Показать" : "Скрыть"}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  style={styles.button}
+                  style={{ ...styles.button, marginTop: 43 }}
                   onPress={onSubmit}
                 >
                   <Text style={styles.btnTxt}>Зарегистрироваться</Text>
@@ -143,7 +165,6 @@ export const RegistrationScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-end",
   },
 
   img: {
@@ -175,9 +196,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
 
+  addPhotoBtn: {
+    position: "absolute",
+    top: 21,
+    left: "50%",
+  },
+
   registerTittle: {
+    fontFamily: "Roboto-Medium",
     paddingBottom: 32,
-    // fontWeight: 500,
     fontSize: 30,
     lineHeight: 35,
     textAlign: "center",
@@ -187,6 +214,7 @@ const styles = StyleSheet.create({
   form: { paddingHorizontal: 16 },
 
   input: {
+    fontFamily: "Roboto-Regular",
     paddingHorizontal: 16,
     fontSize: 16,
     lineHeight: 19,
@@ -195,6 +223,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     color: "#212121",
+  },
+
+  showPaswordTxt: {
+    position: "absolute",
+    fontFamily: "Roboto-Regular",
+    right: 16,
+    top: "50%",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#1b4371",
   },
 
   text: {
@@ -212,12 +250,14 @@ const styles = StyleSheet.create({
   },
 
   btnTxt: {
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
     color: "#fff",
   },
 
   registerTxt: {
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
     textAlign: "center",
