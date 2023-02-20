@@ -1,3 +1,5 @@
+<script src="http://localhost:8097"></script>;
+
 import React, { useCallback, useState, useEffect } from "react";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -31,7 +33,8 @@ export default function App() {
   }, [isReady]);
 
   if (!isReady) {
-    return null;a
+    return null;
+    a;
   }
 
   return (
