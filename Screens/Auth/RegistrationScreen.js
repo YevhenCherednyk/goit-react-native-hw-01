@@ -19,7 +19,7 @@ const initialState = {
   password: "",
 };
 
-export const RegistrationScreen = () => {
+export const RegistrationScreen = ({ navigation }) => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
@@ -43,7 +43,7 @@ export const RegistrationScreen = () => {
       <View style={styles.container}>
         <ImageBackground
           style={styles.img}
-          source={require("../assets/images/BG.jpg")}
+          source={require("../../assets/images/BG.jpg")}
         >
           <KeyboardAvoidingView
             style={styles.wrapper}
@@ -152,7 +152,15 @@ export const RegistrationScreen = () => {
                 >
                   <Text style={styles.btnTxt}>Зарегистрироваться</Text>
                 </TouchableOpacity>
-                <Text style={styles.registerTxt}>Уже есть аккаунт? Войти</Text>
+                <View style={styles.registerTxtWrapper}>
+                  <Text style={styles.registerTxt}>Уже есть аккаунт?</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => navigation.navigate("Login")}
+                  >
+                    <Text style={styles.registerTxt}> Войти</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </KeyboardAvoidingView>
@@ -254,6 +262,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 19,
     color: "#fff",
+  },
+
+  registerTxtWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   registerTxt: {
