@@ -1,4 +1,4 @@
-import react, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -13,6 +13,8 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 
+import { AppContext } from "../../context/App.Context";
+
 const initialState = {
   login: "",
   email: "",
@@ -20,6 +22,7 @@ const initialState = {
 };
 
 export const RegistrationScreen = ({ navigation }) => {
+  const { setIsAuth } = useContext(AppContext);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
@@ -34,6 +37,7 @@ export const RegistrationScreen = ({ navigation }) => {
     Keyboard.dismiss();
     console.log(state);
     setState(initialState);
+    setIsAuth(true);
   };
 
   const onPress = () => setIsShowPassword(!isShowPassword);

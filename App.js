@@ -1,21 +1,22 @@
 <script src="http://localhost:8097"></script>;
 
 import React, { useCallback, useState, useEffect } from "react";
-
 import { NavigationContainer } from "@react-navigation/native";
 
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { View, StyleSheet } from "react-native";
 
+import { AppContext } from "./context/App.Context";
 import { useRoute } from "./router";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
 
-  const routing = useRoute(true);
+  const routing = useRoute(isAuth);
 
   const loadFonts = async () => {
     await Font.loadAsync({
@@ -41,9 +42,11 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container} onLayout={onLayoutRootView}>
-      <NavigationContainer>{routing}</NavigationContainer>
-    </View>
+    <AppContext.Provider value={{ isAuth, setIsAuth }}>
+      <View style={styles.container} onLayout={onLayoutRootView}>
+        <NavigationContainer>{routing}</NavigationContainer>
+      </View>
+    </AppContext.Provider>
   );
 }
 

@@ -1,4 +1,4 @@
-import react, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   ImageBackground,
@@ -12,12 +12,15 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 
+import { AppContext } from "../../context/App.Context";
+
 const initialState = {
   email: "",
   password: "",
 };
 
 export const LoginScreen = ({ navigation }) => {
+  const { setIsAuth } = useContext(AppContext);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
@@ -32,6 +35,7 @@ export const LoginScreen = ({ navigation }) => {
     Keyboard.dismiss();
     console.log(state);
     setState(initialState);
+    setIsAuth(true);
   };
 
   const onPress = () => setIsShowPassword(!isShowPassword);
@@ -109,7 +113,7 @@ export const LoginScreen = ({ navigation }) => {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   style={{ ...styles.button, marginTop: 43 }}
-                  onPress={onSubmit}
+                  onPress={() => onSubmit()}
                 >
                   <Text style={styles.btnTxt}>Войти</Text>
                 </TouchableOpacity>

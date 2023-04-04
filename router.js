@@ -8,11 +8,10 @@ import { Home } from "./Screens/MainScreen/Home";
 
 const AuthStack = createNativeStackNavigator();
 
-
 export const useRoute = (isAuth) => {
   if (!isAuth) {
     return (
-      <AuthStack.Navigator>
+      <AuthStack.Navigator initialRouteName="Login">
         <AuthStack.Screen
           options={{ headerShown: false }}
           name="Login"
@@ -26,5 +25,13 @@ export const useRoute = (isAuth) => {
       </AuthStack.Navigator>
     );
   }
-  return <Home />;
+  return (
+    <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Home"
+        component={Home}
+        options={{ headerShown: false }}
+      />
+    </AuthStack.Navigator>
+  );
 };
