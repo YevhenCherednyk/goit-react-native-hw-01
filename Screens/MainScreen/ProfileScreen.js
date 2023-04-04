@@ -14,9 +14,9 @@ import { AntDesign, Feather, Octicons } from "@expo/vector-icons";
 
 import { AppContext } from "../../context/App.Context";
 
-import * as ImagePicker from "expo-image-picker";
-import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system";
+// import * as ImagePicker from "expo-image-picker";
+// import { Asset } from "expo-asset";
+// import * as FileSystem from "expo-file-system";
 
 const posts = [
   {
@@ -50,44 +50,13 @@ export const ProfileScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
   const { setIsAuth } = useContext(AppContext);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access media library is required!");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setImage(uri);
-      setPlusIcon("close");
-    }
-  };
-
-  const deleteImage = async () => {
-    if (image) {
-      const asset = Asset.fromURI(image);
-      const fileUri = asset.localUri || asset.uri;
-
-      await FileSystem.deleteAsync(fileUri);
-      setImage(null);
-      setPlusIcon("plus");
-    }
-  };
-
   const plusIconChange = () => {
     if (plusIcon === "plus") {
-      console.log("pick image");
-      pickImage();
+      console.log("image");
+      setPlusIcon("close");
     }
-    deleteImage();
+    setImage(null);
+    setPlusIcon("plus");
   };
 
   return (
@@ -101,18 +70,18 @@ export const ProfileScreen = ({ navigation }) => {
             <View style={styles.photoWrap}>
               {image && <Image source={{ uri: image }} style={styles.image} />}
             </View>
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity activeOpacity={0.8}>
               {plusIcon === "plus" ? (
                 <AntDesign
                   name="pluscircleo"
                   style={{ ...styles.plusIcon, color: "#FF6C00" }}
-                  onPress={() => plusIconChange()}
+                  onPress={plusIconChange}
                 />
               ) : (
                 <AntDesign
                   name="closecircleo"
                   style={{ ...styles.plusIcon, color: "#E8E8E8" }}
-                  onPress={() => plusIconChange()}
+                  onPress={plusIconChange}
                 />
               )}
             </TouchableOpacity>

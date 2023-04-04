@@ -18,7 +18,7 @@ export const Home = ({ navigation }) => {
   const { setIsAuth } = useContext(AppContext);
 
   return (
-    <MainTab.Navigator tabBarOptions={{ showLabel: false }}>
+    <MainTab.Navigator screenOptions={{ tabBarShowLabel: false }}>
       <MainTab.Screen
         options={{
           title: "Публикации",

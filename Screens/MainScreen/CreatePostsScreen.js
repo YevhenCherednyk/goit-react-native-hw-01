@@ -49,7 +49,7 @@ export const CreatePostsScreen = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <KeyboardAvoidingView
         style={styles.container}
-        // behavior={Platform.OS === "ios" ? "padding" : ""}
+        behavior={Platform.OS === "ios" ? "padding" : ""}
         keyboardVerticalOffset={100}
       >
         <ScrollView>
