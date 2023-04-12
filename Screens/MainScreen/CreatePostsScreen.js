@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   View,
@@ -14,20 +14,41 @@ import {
 } from "react-native";
 
 import { FontAwesome, Feather } from "@expo/vector-icons";
-
-const initialState = {
-  image: null,
-  title: "",
-  location: "",
-};
+import { Camera } from "expo-camera";
+import * as MediaLibrary from "expo-media-library";
 
 export const CreatePostsScreen = ({ navigation }) => {
-  const [state, setState] = useState(initialState);
   const [isShownKeyboard, setIsShownKeyboard] = useState(false);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [camera, setCamera] = useState(null);
+  const [photoPath, setPhotoPath] = useState(null);
+  const [postTitle, setPostTitle] = useState("");
+  const [postLocation, setPostLocation] = useState("");
+  const [type, setType] = useState(Camera.Constants.Type.back);
 
-  const inputHandler = (name, value) => {
-    setState((prevState) => ({ ...prevState, [name]: value }));
+  const takePhoto = async () => {
+    if (camera) {
+      const { uri } = await camera.takePictureAsync();
+      await MediaLibrary.createAssetAsync(uri);
+      setPhotoPath(uri);
+    }
   };
+
+  useEffect(() => {
+    const statusSetter = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      await MediaLibrary.requestPermissionsAsync();
+
+      if (status !== "granted") {
+        setErrorMsg("Permission to camera access was denied");
+        return;
+      }
+
+      setHasPermission(status === "granted");
+    };
+
+    statusSetter();
+  }, []);
 
   const showKeyboard = () => {
     setIsShownKeyboard(true);
@@ -38,12 +59,16 @@ export const CreatePostsScreen = ({ navigation }) => {
     Keyboard.dismiss();
   };
 
-  const savePost = () => {
-    console.log(state);
-    setState(initialState);
+  const sendPost = () => {
+    navigation.navigate("Posts", { photoPath, postTitle, postLocation });
+    setPhotoPath(null);
+    setPostTitle("");
+    setPostLocation("");
   };
 
-  const { image, title, location } = state;
+  if (hasPermission === null) {
+    return <View />;
+  }
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -53,37 +78,62 @@ export const CreatePostsScreen = ({ navigation }) => {
         keyboardVerticalOffset={100}
       >
         <ScrollView>
-          {image ? (
-            <View style={styles.photoWrapper}>
-              {image && <Image sourse={{ uri: image }} style={styles.image} />}
-            </View>
-          ) : (
-            <View style={styles.placeholderImage}>
-              <View style={styles.iconWrappper}>
-                <FontAwesome name="camera" size={24} color="#BDBDBD" />
+          <View style={styles.cameraContainer}>
+            {photoPath === null &&
+              (hasPermission ? (
+                <Camera
+                  style={styles.camera}
+                  type={type}
+                  ref={(ref) => {
+                    setCamera(ref);
+                  }}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.iconWrapper}
+                    onPress={takePhoto}
+                  >
+                    <FontAwesome name="camera" size={24} color="#BDBDBD" />
+                  </TouchableOpacity>
+                </Camera>
+              ) : (
+                <View style={styles.camera}>
+                  <Text style={styles.noAccessText}>No access to camera</Text>
+                </View>
+              ))}
+            {photoPath && (
+              <View style={styles.camera}>
+                <Image
+                  source={{ uri: photoPath }}
+                  style={styles.previewPhoto}
+                />
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={[
+                    styles.iconWrapper,
+                    { zIndex: 10, backgroundColor: "#ffffff4d" },
+                  ]}
+                  onPress={async () => {
+                    setPhotoPath(null);
+                  }}
+                >
+                  <FontAwesome name="camera" size={24} color="#BDBDBD" />
+                </TouchableOpacity>
               </View>
-            </View>
-          )}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() =>
-              setState((prevState) => ({
-                ...prevState,
-                image: "https://unsplash.com/photos/VUWEvNateeM",
-              }))
-            }
-          >
+            )}
+          </View>
+          <View>
             <Text style={styles.loadImageText}>
-              {!image ? "Загрузите фото" : "Редактировать фото"}
+              {!photoPath ? "Загрузите фото" : "Редактировать фото"}
             </Text>
-          </TouchableOpacity>
+          </View>
           <View>
             <TextInput
               style={styles.input}
               placeholderTextColor={"#BDBDBD"}
               placeholder="Название..."
-              value={title}
-              onChangeText={(value) => inputHandler("title", value)}
+              value={postTitle}
+              onChangeText={(value) => setPostTitle(value)}
               onFocus={showKeyboard}
             />
 
@@ -100,21 +150,25 @@ export const CreatePostsScreen = ({ navigation }) => {
                 style={[{ ...styles.input }, { paddingLeft: 28 }]}
                 placeholderTextColor={"#BDBDBD"}
                 placeholder="Местность..."
-                value={location}
-                onChangeText={(value) => inputHandler("location", value)}
+                value={postLocation}
+                onChangeText={(value) => setPostLocation(value)}
                 onFocus={showKeyboard}
               />
             </View>
 
             <TouchableOpacity activeOpacity={0.8} style={styles.button}>
-              <Text style={styles.buttonTitle} onPress={savePost}>
+              <Text style={styles.buttonTitle} onPress={(sendPost)}>
                 Опубликовать
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => setState(initialState)}
+              onPress={() => {
+                setPhotoPath(null);
+                setPostTitle("");
+                setPostLocation("");
+              }}
               style={styles.trashIconWrapper}
             >
               <Feather name="trash-2" size={24} style={styles.trashIcon} />
@@ -132,6 +186,38 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingHorizontal: 16,
     backgroundColor: "#ffffff",
+  },
+
+  cameraContainer: {
+    borderRadius: 10,
+    overflow: "hidden",
+    width: "100%",
+    height: 240,
+    marginBottom: 8,
+  },
+
+  camera: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
+  },
+
+  noAccessText: {
+    alignSelf: "center",
+    textAlign: "center",
+    fontFamily: "Roboto-Regular",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#BDBDBD",
+  },
+
+  previewPhoto: {
+    flex: 1,
+    resizeMode: "cover",
+    width: "100%",
+    height: 240,
   },
 
   photoWrapper: {
@@ -158,7 +244,8 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
 
-  iconWrappper: {
+  iconWrapper: {
+    position: "absolute",
     justifyContent: "center",
     alignItems: "center",
     width: 60,

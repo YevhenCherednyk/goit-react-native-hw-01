@@ -1,19 +1,44 @@
-import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, FlatList, StyleSheet } from "react-native";
 
-export const PostsScreen = ({ navigation }) => {
+export const PostsScreen = ({ navigation, route }) => {
+  const [posts, setPosts] = useState([]);
+  console.log(route.params);
+
+  useEffect(() => {
+    if (route.params) {
+      setPosts((prevState) => [...prevState, route.params]);
+    }
+  }, [route.params]);
+
+  // console.log("posts", posts);
+
   return (
     <View style={styles.container}>
-      <View style={styles.info}>
-        <Image
-          source={require("../../assets/images/user.png")}
-          style={styles.avatarImage}
-        />
-        <View>
-          <Text style={styles.name}> Natali Romanova </Text>
-          <Text style={styles.email}> email@example.com </Text>
+      <View style={styles.userContainer}>
+        <View style={styles.info}>
+          <Image
+            source={require("../../assets/images/user.png")}
+            style={styles.avatarImage}
+          />
+          <View>
+            <Text style={styles.name}> Natali Romanova </Text>
+            <Text style={styles.email}> email@example.com </Text>
+          </View>
         </View>
       </View>
+      <FlatList
+        style={styles.postsList}
+        data={posts}
+        keyExtractor={(item, idx) => idx.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.postWrapper}>
+            <Image source={{ uri: item.photoPath }} style={styles.postPhoto} />
+            <Text>{item.postTitle}</Text>
+            <Text>{item.postLocation}</Text>
+          </View>
+        )}
+      />
     </View>
   );
 };
@@ -21,10 +46,14 @@ export const PostsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    display: "flex",
     paddingTop: 32,
     paddingHorizontal: 16,
     backgroundColor: "#ffffff",
+  },
+
+  userContainer: {
+    display: "flex",
+    marginBottom: 32,
   },
 
   info: {
@@ -51,5 +80,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 13,
     color: "rgba(33, 33, 33, 0.8)",
+  },
+
+  postsList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 32,
+  },
+
+  postWrapper: {
+    marginBottom: 32,
+  },
+
+  postPhoto: {
+    height: 240,
+    width: "100%",
+    borderRadius: 8,
   },
 });
