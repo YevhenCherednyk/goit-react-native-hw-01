@@ -16,6 +16,7 @@ import {
 import { FontAwesome, Feather } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import * as Location from "expo-location";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [isShownKeyboard, setIsShownKeyboard] = useState(false);
@@ -24,6 +25,7 @@ export const CreatePostsScreen = ({ navigation }) => {
   const [photoPath, setPhotoPath] = useState(null);
   const [postTitle, setPostTitle] = useState("");
   const [postLocation, setPostLocation] = useState("");
+  const [location, setLocation] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
 
   const takePhoto = async () => {
@@ -50,6 +52,22 @@ export const CreatePostsScreen = ({ navigation }) => {
     statusSetter();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const coords = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+      setLocation(coords);
+    })();
+  }, []);
+
   const showKeyboard = () => {
     setIsShownKeyboard(true);
   };
@@ -60,7 +78,12 @@ export const CreatePostsScreen = ({ navigation }) => {
   };
 
   const sendPost = () => {
-    navigation.navigate("Posts", { photoPath, postTitle, postLocation });
+    navigation.navigate("DefaultScreen", {
+      photoPath,
+      postTitle,
+      postLocation,
+      location,
+    });
     setPhotoPath(null);
     setPostTitle("");
     setPostLocation("");
@@ -157,7 +180,7 @@ export const CreatePostsScreen = ({ navigation }) => {
             </View>
 
             <TouchableOpacity activeOpacity={0.8} style={styles.button}>
-              <Text style={styles.buttonTitle} onPress={(sendPost)}>
+              <Text style={styles.buttonTitle} onPress={sendPost}>
                 Опубликовать
               </Text>
             </TouchableOpacity>
