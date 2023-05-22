@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 export const DefaultPostsScreen = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
@@ -32,8 +40,25 @@ export const DefaultPostsScreen = ({ navigation, route }) => {
         renderItem={({ item }) => (
           <View style={styles.postWrapper}>
             <Image source={{ uri: item.photoPath }} style={styles.postPhoto} />
-            <Text>{item.postTitle}</Text>
-            <Text>{item.postLocation}</Text>
+            <Text style={styles.postTitle}>{item.postTitle}</Text>
+            <View style={styles.descriptionWrapper}>
+              <TouchableOpacity
+                style={styles.commentsWrapper}
+                onPress={() => navigation.navigate("Comments")}
+                activeOpacity={0.8}
+              >
+                <Feather name="message-circle" size={24} color="#BDBDBD" />
+                <Text style={styles.commentsNumber}>0</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.locationWrapper}
+                onPress={() => navigation.navigate("Map")}
+                activeOpacity={0.8}
+              >
+                <Feather name="map-pin" size={24} color="#BDBDBD" />
+                <Text style={styles.locationName}>{item.postLocation}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
@@ -92,7 +117,49 @@ const styles = StyleSheet.create({
 
   postPhoto: {
     height: 240,
+    marginBottom: 8,
     width: "100%",
     borderRadius: 8,
+  },
+
+  postTitle: {
+    marginBottom: 11,
+    fontFamily: "Roboto-Medium",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+  },
+
+  descriptionWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  commentsWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  commentsNumber: {
+    marginLeft: 6,
+    fontFamily: "Roboto-Regular",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#BDBDBD",
+  },
+
+  locationWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  locationName: {
+    marginLeft: 4,
+    fontFamily: "Roboto-Regular",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    textDecorationLine: "underline",
+    textDecorationColor: "#212121",
   },
 });

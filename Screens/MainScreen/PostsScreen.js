@@ -14,9 +14,13 @@ export const PostsScreen = () => {
       <NestedScreen.Screen
         name="DefaultScreen"
         component={DefaultPostsScreen}
-        options={{headerShow: false}}
+        options={{ headerShow: false }}
       />
-      <NestedScreen.Screen name="Comments" component={CommentsScreen} />
+      <NestedScreen.Screen
+        name="Comments"
+        component={CommentsScreen}
+        options={{ tittle: "Комментарии" }}
+      />
       <NestedScreen.Screen name="Map" component={MapScreen} />
     </NestedScreen.Navigator>
   );
