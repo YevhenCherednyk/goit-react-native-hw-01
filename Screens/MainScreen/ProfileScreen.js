@@ -14,10 +14,6 @@ import { AntDesign, Feather, Octicons } from "@expo/vector-icons";
 
 import { AppContext } from "../../context/App.Context";
 
-// import * as ImagePicker from "expo-image-picker";
-// import { Asset } from "expo-asset";
-// import * as FileSystem from "expo-file-system";
-
 const posts = [
   {
     id: "1",
