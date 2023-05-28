@@ -11,7 +11,6 @@ import { Feather } from "@expo/vector-icons";
 
 export const DefaultPostsScreen = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
-  console.log(route.params);
 
   useEffect(() => {
     if (route.params) {

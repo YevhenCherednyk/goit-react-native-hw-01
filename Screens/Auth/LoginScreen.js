@@ -1,4 +1,6 @@
 import React, { useState, useContext } from "react";
+import { useDispatch } from "react-redux";
+
 import {
   StyleSheet,
   ImageBackground,
@@ -12,7 +14,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 
-import { AppContext } from "../../context/App.Context";
+import { authSignInUser } from "../../redux/auth/operations";
 
 const initialState = {
   email: "",
@@ -20,10 +22,11 @@ const initialState = {
 };
 
 export const LoginScreen = ({ navigation }) => {
-  const { setIsAuth } = useContext(AppContext);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -33,9 +36,8 @@ export const LoginScreen = ({ navigation }) => {
   const onSubmit = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
-    console.log(state);
+    dispatch(authSignInUser(state));
     setState(initialState);
-    setIsAuth(true);
   };
 
   const onPress = () => setIsShowPassword(!isShowPassword);

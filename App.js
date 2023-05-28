@@ -3,22 +3,25 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from "react-redux";
+import { onAuthStateChanged } from "firebase/auth";
 
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { View, StyleSheet } from "react-native";
 
-import { AppContext } from "./context/App.Context";
 import { useRoute } from "./router";
 import { store } from "./redux/store";
+import { auth } from "./firebase/config";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
-  // const [isAuth, setIsAuth] = useState(false);
+  const [user, setUser] = useState(null);
 
-  const routing = useRoute(false);
+  onAuthStateChanged(auth, (user) => setUser(user));
+
+  const routing = useRoute(user);
 
   const loadFonts = async () => {
     await Font.loadAsync({
@@ -45,11 +48,9 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      {/* <AppContext.Provider value={{ isAuth, setIsAuth }}> */}
       <View style={styles.container} onLayout={onLayoutRootView}>
         <NavigationContainer>{routing}</NavigationContainer>
       </View>
-      {/* </AppContext.Provider> */}
     </Provider>
   );
 }

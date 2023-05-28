@@ -1,4 +1,6 @@
 import React, { useState, useContext } from "react";
+import { useDispatch } from "react-redux";
+
 import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -13,7 +15,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 
-import { AppContext } from "../../context/App.Context";
+import { authSignUpUser } from "../../redux/auth/operations";
 
 const initialState = {
   login: "",
@@ -22,10 +24,11 @@ const initialState = {
 };
 
 export const RegistrationScreen = ({ navigation }) => {
-  const { setIsAuth } = useContext(AppContext);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -35,9 +38,8 @@ export const RegistrationScreen = ({ navigation }) => {
   const onSubmit = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
-    console.log(state);
+    dispatch(authSignUpUser(state));
     setState(initialState);
-    setIsAuth(true);
   };
 
   const onPress = () => setIsShowPassword(!isShowPassword);
