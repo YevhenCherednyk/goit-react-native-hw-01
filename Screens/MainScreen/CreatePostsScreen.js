@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import { getStorage, ref, getDownloadURL, uploadBytes } from "firebase/storage";
+
 import {
   View,
   Text,
@@ -17,6 +19,7 @@ import { FontAwesome, Feather } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
+import { storage } from "../../firebase/config";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [isShownKeyboard, setIsShownKeyboard] = useState(false);
@@ -78,6 +81,7 @@ export const CreatePostsScreen = ({ navigation }) => {
   };
 
   const sendPost = () => {
+    uploadPhotoToserver();
     navigation.navigate("DefaultScreen", {
       photoPath,
       postTitle,
@@ -87,6 +91,20 @@ export const CreatePostsScreen = ({ navigation }) => {
     setPhotoPath(null);
     setPostTitle("");
     setPostLocation("");
+  };
+
+  const uploadPhotoToserver = async () => {
+    const storage = getStorage();
+    const uniquePostId = Date.now().toString();
+    const storageref = ref(storage, `postImage/${uniquePostId}`);
+    const response = await fetch(photoPath);
+    const file = await response.blob();
+
+    await uploadBytes(storageref, file);
+
+    const processedPhoto = await getDownloadURL(storageref);
+    console.log("processedPhoto:", processedPhoto);
+    return processedPhoto;
   };
 
   if (hasPermission === null) {
