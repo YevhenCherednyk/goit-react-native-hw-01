@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+
 import {
   View,
   Text,
@@ -9,14 +11,20 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
+import { db } from "../../firebase/config";
+
 export const DefaultPostsScreen = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
 
+  const getAllPosts = async () => {
+    await onSnapshot(collection(db, "posts"), (snapshots) => {
+      setPosts(snapshots.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
+  };
+
   useEffect(() => {
-    if (route.params) {
-      setPosts((prevState) => [...prevState, route.params]);
-    }
-  }, [route.params]);
+    getAllPosts();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -43,7 +51,9 @@ export const DefaultPostsScreen = ({ navigation, route }) => {
             <View style={styles.descriptionWrapper}>
               <TouchableOpacity
                 style={styles.commentsWrapper}
-                onPress={() => navigation.navigate("Comments")}
+                onPress={() =>
+                  navigation.navigate("Comments", { postId: item.id })
+                }
                 activeOpacity={0.8}
               >
                 <Feather name="message-circle" size={24} color="#BDBDBD" />
@@ -51,7 +61,9 @@ export const DefaultPostsScreen = ({ navigation, route }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.locationWrapper}
-                onPress={() => navigation.navigate("Map")}
+                onPress={() =>
+                  navigation.navigate("Map", { location: item.location })
+                }
                 activeOpacity={0.8}
               >
                 <Feather name="map-pin" size={24} color="#BDBDBD" />

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 import {
   View,
@@ -8,9 +9,13 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
+  Keyboard,
 } from "react-native";
 
+import { addDoc, collection } from "firebase/firestore";
 import { AntDesign } from "@expo/vector-icons";
+import { db } from "../../firebase/config";
 
 const comments = [
   {
@@ -45,7 +50,35 @@ const comments = [
   },
 ];
 
-export const CommentsScreen = () => {
+export const CommentsScreen = ({ route }) => {
+  const { postId } = route.params;
+  const [comment, setComment] = useState("");
+  const [isShownKeyboard, setIsShownKeyboard] = useState(false);
+
+  const { login } = useSelector((state) => state.auth);
+
+  const uploadCommentToServer = async () => {
+    await addDoc(collection(db, "posts", postId, "comments"), {
+      comment,
+      login,
+    });
+  };
+
+  const keyboardHide = () => {
+    setIsShownKeyboard(false);
+    Keyboard.dismiss();
+  };
+
+  const createComment = () => {
+    if (!comment.trim()) {
+      console.log("comment empty");
+      return;
+    }
+    uploadCommentToServer();
+    keyboardHide();
+    setComment("");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -76,8 +109,16 @@ export const CommentsScreen = () => {
             style={styles.input}
             placeholder="Комментировать..."
             placeholderTextColor="#BDBDBD"
+            value={comment}
+            onChangeText={(value) => setComment(value)}
           />
-          <View style={styles.iconWrapper}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.iconWrapper}
+            onPress={() => {
+              createComment();
+            }}
+          >
             <AntDesign
               style={[
                 styles.icon,
@@ -87,7 +128,7 @@ export const CommentsScreen = () => {
               size={24}
               color="#fff"
             />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

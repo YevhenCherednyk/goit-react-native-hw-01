@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 
 import { getStorage, ref, getDownloadURL, uploadBytes } from "firebase/storage";
+
+import { addDoc, collection } from "firebase/firestore";
 
 import {
   View,
@@ -19,7 +22,8 @@ import { FontAwesome, Feather } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
-import { storage } from "../../firebase/config";
+
+import { db } from "../../firebase/config";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [isShownKeyboard, setIsShownKeyboard] = useState(false);
@@ -30,6 +34,8 @@ export const CreatePostsScreen = ({ navigation }) => {
   const [postLocation, setPostLocation] = useState("");
   const [location, setLocation] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+
+  const { userId, login } = useSelector((state) => state.auth);
 
   const takePhoto = async () => {
     if (camera) {
@@ -80,20 +86,32 @@ export const CreatePostsScreen = ({ navigation }) => {
     Keyboard.dismiss();
   };
 
-  const sendPost = () => {
-    uploadPhotoToserver();
-    navigation.navigate("DefaultScreen", {
-      photoPath,
-      postTitle,
-      postLocation,
-      location,
-    });
+  const sendPost = async () => {
+    console.log("send post");
+
+    await uploadPostToServer();
+
+    navigation.navigate("DefaultScreen");
+
     setPhotoPath(null);
     setPostTitle("");
     setPostLocation("");
   };
 
-  const uploadPhotoToserver = async () => {
+  const uploadPostToServer = async () => {
+    const photo = await uploadPhotoToServer();
+
+    await addDoc(collection(db, "posts"), {
+      photoPath: photo,
+      postTitle,
+      postLocation,
+      location,
+      userId,
+      login,
+    });
+  };
+
+  const uploadPhotoToServer = async () => {
     const storage = getStorage();
     const uniquePostId = Date.now().toString();
     const storageref = ref(storage, `postImage/${uniquePostId}`);
@@ -103,7 +121,7 @@ export const CreatePostsScreen = ({ navigation }) => {
     await uploadBytes(storageref, file);
 
     const processedPhoto = await getDownloadURL(storageref);
-    console.log("processedPhoto:", processedPhoto);
+
     return processedPhoto;
   };
 
