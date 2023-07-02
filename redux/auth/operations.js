@@ -10,7 +10,7 @@ import { auth } from "../../firebase/config";
 import { updateUserProfile, authStateChange, authSignOut } from "./authSlice";
 
 export const authSignUpUser =
-  ({ login, email, password }) =>
+  ({ avatar, login, email, password }) =>
   async (dispatch, getState) => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
@@ -31,8 +31,6 @@ export const authSignUpUser =
         email,
         avatar: photoURL,
       };
-
-      console.log(userUpdateProfile);
 
       dispatch(updateUserProfile(userUpdateProfile));
     } catch (error) {

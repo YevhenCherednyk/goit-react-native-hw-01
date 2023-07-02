@@ -1,10 +1,13 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
+
+import * as ImagePicker from "expo-image-picker";
 
 import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
   ImageBackground,
+  Image,
   Text,
   View,
   TextInput,
@@ -21,12 +24,15 @@ const initialState = {
   login: "",
   email: "",
   password: "",
+  avatar: "",
 };
 
 export const RegistrationScreen = ({ navigation }) => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [state, setState] = useState(initialState);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [image, setImage] = useState(null);
 
   const dispatch = useDispatch();
 
@@ -43,6 +49,34 @@ export const RegistrationScreen = ({ navigation }) => {
   };
 
   const onPress = () => setIsShowPassword(!isShowPassword);
+
+  useEffect(() => {
+    const statusSetter = async () => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to gallery access was denied");
+        return;
+      }
+      setHasPermission(status === "granted");
+    };
+  }, []);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    const userImgUri = result.assets[0].uri;
+
+    if (!result.canceled) {
+      setImage(userImgUri);
+      setState((prevState) => ({ ...prevState, avatar: userImgUri }));
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -68,7 +102,14 @@ export const RegistrationScreen = ({ navigation }) => {
                     transform: [{ translateX: -60 }],
                   },
                 ]}
-              ></View>
+              >
+                {image && (
+                  <Image
+                    source={{ uri: image }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                )}
+              </View>
               <TouchableOpacity
                 style={[
                   styles.addPhotoBtn,
@@ -77,6 +118,7 @@ export const RegistrationScreen = ({ navigation }) => {
                   },
                 ]}
                 activeOpacity={0.8}
+                onPress={pickImage}
               >
                 <AntDesign name="pluscircleo" size={25} color="#ff6c00" />
               </TouchableOpacity>

@@ -87,8 +87,6 @@ export const CreatePostsScreen = ({ navigation }) => {
   };
 
   const sendPost = async () => {
-    console.log("send post");
-
     await uploadPostToServer();
 
     navigation.navigate("DefaultScreen");

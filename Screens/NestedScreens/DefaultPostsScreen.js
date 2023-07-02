@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { collection, onSnapshot } from "firebase/firestore";
 
 import {
@@ -16,6 +17,8 @@ import { db } from "../../firebase/config";
 export const DefaultPostsScreen = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
 
+  const { login, email, avatar } = useSelector((state) => state.auth);
+
   const getAllPosts = async () => {
     await onSnapshot(collection(db, "posts"), (snapshots) => {
       setPosts(snapshots.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
@@ -30,13 +33,10 @@ export const DefaultPostsScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.userContainer}>
         <View style={styles.info}>
-          <Image
-            source={require("../../assets/images/user.png")}
-            style={styles.avatarImage}
-          />
+          <Image source={{ uri: avatar }} style={styles.avatarImage} />
           <View>
-            <Text style={styles.name}> Natali Romanova </Text>
-            <Text style={styles.email}> email@example.com </Text>
+            <Text style={styles.name}> {login} </Text>
+            <Text style={styles.email}> {email} </Text>
           </View>
         </View>
       </View>
@@ -52,7 +52,10 @@ export const DefaultPostsScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={styles.commentsWrapper}
                 onPress={() =>
-                  navigation.navigate("Comments", { postId: item.id })
+                  navigation.navigate("Comments", {
+                    postId: item.id,
+                    photo: item.photoPath,
+                  })
                 }
                 activeOpacity={0.8}
               >

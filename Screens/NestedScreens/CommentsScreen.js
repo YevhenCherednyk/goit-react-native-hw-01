@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 
 import {
@@ -11,57 +11,47 @@ import {
   StyleSheet,
   TouchableOpacity,
   Keyboard,
+  FlatList,
 } from "react-native";
 
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, onSnapshot } from "firebase/firestore";
 import { AntDesign } from "@expo/vector-icons";
 import { db } from "../../firebase/config";
 
-const comments = [
-  {
-    id: "1",
-    author: "name",
-    message: "comment 1",
-    postedDate: "24.05.2023",
-  },
-  {
-    id: "2",
-    author: "name",
-    message: "comment 2",
-    postedDate: "24.05.2023",
-  },
-  {
-    id: "3",
-    author: "name",
-    message: "comment 3",
-    postedDate: "24.05.2023",
-  },
-  {
-    id: "4",
-    author: "name",
-    message: "comment 4",
-    postedDate: "24.05.2023",
-  },
-  {
-    id: "5",
-    author: "name",
-    message: "comment 5",
-    postedDate: "24.05.2023",
-  },
-];
+import { format } from "date-fns";
 
 export const CommentsScreen = ({ route }) => {
-  const { postId } = route.params;
+  const { postId, photo } = route.params;
   const [comment, setComment] = useState("");
+  const [allComments, setAllComments] = useState([]);
   const [isShownKeyboard, setIsShownKeyboard] = useState(false);
 
-  const { login } = useSelector((state) => state.auth);
+  const { login, avatar } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    getAllComments();
+  }, []);
 
   const uploadCommentToServer = async () => {
+    const date = new Date().toString();
+    const postDate = format(Date.parse(date), "dd LLLL, yyyy | HH:mm");
     await addDoc(collection(db, "posts", postId, "comments"), {
       comment,
       login,
+      avatar,
+      postDate,
     });
+  };
+
+  const getAllComments = async () => {
+    await onSnapshot(
+      collection(db, "posts", postId, "comments"),
+      (snapshots) => {
+        setAllComments(
+          snapshots.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        );
+      }
+    );
   };
 
   const keyboardHide = () => {
@@ -70,10 +60,6 @@ export const CommentsScreen = ({ route }) => {
   };
 
   const createComment = () => {
-    if (!comment.trim()) {
-      console.log("comment empty");
-      return;
-    }
     uploadCommentToServer();
     keyboardHide();
     setComment("");
@@ -82,27 +68,28 @@ export const CommentsScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <ScrollView>
-          <View style={styles.imageWrapper}>
-            <Image style={styles.image} />
-          </View>
+        <View style={styles.imageWrapper}>
+          <Image style={styles.image} source={{ uri: photo }} />
+        </View>
 
-          <SafeAreaView style={styles.listWrapper}>
-            <ScrollView>
-              {comments.map((item) => (
-                <View style={styles.commentWrapper} key={item.id}>
-                  <View style={styles.authorImageWrapper}>
-                    <Image style={styles.authorImage} />
-                  </View>
-                  <View style={styles.textWrapper}>
-                    <Text style={styles.text}>{item.message}</Text>
-                    <Text style={styles.date}>{item.postedDate}</Text>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </SafeAreaView>
-        </ScrollView>
+        <FlatList
+          data={allComments}
+          renderItem={({ item }) => (
+            <View style={styles.commentWrapper}>
+              <View style={styles.authorImageWrapper}>
+                <Image
+                  style={styles.authorImage}
+                  source={{ uri: item.avatar }}
+                />
+              </View>
+              <View style={styles.textWrapper}>
+                <Text style={styles.text}>{item.comment}</Text>
+                <Text style={styles.date}>{item.postDate}</Text>
+              </View>
+            </View>
+          )}
+          keyExtractor={(item) => item.id}
+        />
 
         <View style={styles.inputWrapper}>
           <TextInput
@@ -149,6 +136,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: "100%",
     height: 240,
+    marginBottom: 32,
     backgroundColor: "#BDBDBD",
     borderRadius: 8,
     overflow: "hidden",
