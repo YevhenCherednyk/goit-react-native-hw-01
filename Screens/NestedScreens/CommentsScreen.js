@@ -46,9 +46,9 @@ export const CommentsScreen = ({ route }) => {
   const getAllComments = async () => {
     await onSnapshot(
       collection(db, "posts", postId, "comments"),
-      (snapshots) => {
+      (snapshot) => {
         setAllComments(
-          snapshots.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+          snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
         );
       }
     );

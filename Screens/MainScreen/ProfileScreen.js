@@ -1,4 +1,8 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+
+import * as ImagePicker from "expo-image-picker";
 
 import {
   View,
@@ -12,46 +16,68 @@ import {
 } from "react-native";
 import { AntDesign, Feather, Octicons } from "@expo/vector-icons";
 
-import { AppContext } from "../../context/App.Context";
+import { authSignOutUser } from "../../redux/auth/operations";
+import { db } from "../../firebase/config";
 
-const posts = [
-  {
-    id: "1",
-    img: require("../../assets/images/postImg1.png"),
-    title: "Лес",
-    comments: 8,
-    likes: 153,
-    location: "Ukraine",
-  },
-  {
-    id: "2",
-    img: require("../../assets/images/postImg2.png"),
-    title: "Закат на Черном море",
-    comments: 3,
-    likes: 200,
-    location: "Ukraine",
-  },
-  {
-    id: "3",
-    img: require("../../assets/images/postImg3.png"),
-    title: "Старый домик в Венеции",
-    comments: 50,
-    likes: 200,
-    location: "Italy",
-  },
-];
+const initialState = {
+  login: "",
+  email: "",
+  password: "",
+  avatar: "",
+};
 
 export const ProfileScreen = ({ navigation }) => {
   const [plusIcon, setPlusIcon] = useState("plus");
-  const [image, setImage] = useState(null);
-  const { setIsAuth } = useContext(AppContext);
+  const [userPosts, setUserPosts] = useState([]);
+  const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
+  const { login, avatar, userId } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    getUserPosts();
+  }, []);
+
+  const getUserPosts = async () => {
+    const postsRef = collection(db, "posts");
+    const postsQuery = query(postsRef, where("userId", "==", userId));
+
+    await onSnapshot(postsQuery, (snapshot) => {
+      setUserPosts(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
+  };
+
+  const signOut = () => {
+    dispatch(authSignOutUser);
+  };
 
   const plusIconChange = () => {
     if (plusIcon === "plus") {
-      console.log("image");
       setPlusIcon("close");
     }
-    setImage(null);
+    setPlusIcon("plus");
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    const userImgUri = result.assets[0].uri;
+
+    if (!result.canceled) {
+      // setImage(userImgUri);
+      setState((prevState) => ({ ...prevState, avatar: userImgUri }));
+      setPlusIcon("close");
+    }
+  };
+
+  const deleteImage = () => {
+    // setImage(null);
+    setState((prevState) => ({ ...prevState, avatar: null }));
     setPlusIcon("plus");
   };
 
@@ -64,73 +90,78 @@ export const ProfileScreen = ({ navigation }) => {
         <View style={styles.wrapper}>
           <View style={styles.avatarWrap}>
             <View style={styles.photoWrap}>
-              {image && <Image source={{ uri: image }} style={styles.image} />}
+              {avatar && (
+                <Image source={{ uri: avatar }} style={styles.image} />
+              )}
             </View>
             <TouchableOpacity activeOpacity={0.8}>
               {plusIcon === "plus" ? (
                 <AntDesign
                   name="pluscircleo"
                   style={{ ...styles.plusIcon, color: "#FF6C00" }}
-                  onPress={plusIconChange}
+                  onPress={pickImage}
                 />
               ) : (
                 <AntDesign
                   name="closecircleo"
                   style={{ ...styles.plusIcon, color: "#E8E8E8" }}
-                  onPress={plusIconChange}
+                  onPress={deleteImage}
                 />
               )}
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            onPress={() => setIsAuth(false)}
             activeOpacity={0.8}
             style={{ position: "absolute", right: 16, top: 22 }}
+            onPress={signOut}
           >
             <Feather name="log-out" size={24} color="#BDBDBD" />
           </TouchableOpacity>
-          <Text style={styles.pageTitle}>Natali Romanova</Text>
+          {login && <Text style={styles.pageTitle}>{login}</Text>}
           <SafeAreaView style={styles.listWrapper}>
             <FlatList
               style={{ marginBottom: 32 }}
-              data={posts}
+              data={userPosts}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => {
                 return (
                   <View style={styles.listWrapper}>
                     <View>
-                      <Image style={styles.picture} source={item.img} />
+                      <Image
+                        style={styles.picture}
+                        source={{ uri: item.photoPath }}
+                      />
                     </View>
-                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.title}>{item.postTitle}</Text>
                     <View style={styles.descrWraper}>
+                      {/* <View style={styles.commentsWrapper}>
                       <View style={styles.commentsWrapper}>
-                        <View style={styles.commentsWrapper}>
-                          <Feather
-                            style={styles.commentsIcon}
-                            name="message-circle"
-                            size={24}
-                            color="#FF6C00"
-                          />
-                          <Text style={styles.commentsCalc}>
-                            {item.comments}
-                          </Text>
-                        </View>
-                        <View
-                          style={{ ...styles.commentsWrapper, marginLeft: 24 }}
-                        >
-                          <Feather
-                            style={styles.commentsIcon}
-                            name="thumbs-up"
-                            size={24}
-                            color="#FF6C00"
-                          />
-                          <Text style={styles.commentsCalc}>{item.likes}</Text>
-                        </View>
+                        <Feather
+                          style={styles.commentsIcon}
+                          name="message-circle"
+                          size={24}
+                          color="#FF6C00"
+                        />
+                        <Text style={styles.commentsCalc}>{item.comments}</Text>
                       </View>
+                      <View
+                        style={{ ...styles.commentsWrapper, marginLeft: 24 }}
+                      >
+                        <Feather
+                          style={styles.commentsIcon}
+                          name="thumbs-up"
+                          size={24}
+                          color="#FF6C00"
+                        />
+                        <Text style={styles.commentsCalc}>{item.likes}</Text>
+                      </View>
+                    </View> */}
                       <View style={styles.locationWrapper}>
                         <Octicons name="location" size={24} color="#BDBDBD" />
-                        <Text style={styles.locationText}>{item.location}</Text>
+                        <Text style={styles.locationText}>
+                          {item.postLocation}
+                        </Text>
                       </View>
                     </View>
                   </View>
@@ -176,12 +207,14 @@ export const styles = StyleSheet.create({
     right: "50%",
     transform: [{ translateX: 40 }],
   },
+
   photoWrap: {
     width: "100%",
     height: "100%",
     borderRadius: 16,
     overflow: "hidden",
   },
+
   plusIcon: {
     fontSize: 25,
     position: "absolute",
@@ -201,16 +234,19 @@ export const styles = StyleSheet.create({
 
     marginBottom: 32,
   },
+
   listWrapper: {
     backgroundColor: "#fff",
     marginBottom: 32,
   },
+
   picture: {
     height: 240,
     width: "100%",
     borderRadius: 8,
     marginBottom: 8,
   },
+
   title: {
     fontFamily: "Roboto-Medium",
     fontSize: 16,
@@ -218,10 +254,12 @@ export const styles = StyleSheet.create({
     color: "#212121",
     marginBottom: 8,
   },
+
   descrWraper: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
+
   commentsWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -230,16 +268,19 @@ export const styles = StyleSheet.create({
   commentsIcon: {
     marginRight: 6,
   },
+
   commentsCalc: {
     fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
     color: "#212121",
   },
+
   locationWrapper: {
     flexDirection: "row",
     alignItems: "center",
   },
+
   locationText: {
     fontFamily: "Roboto-Regular",
     fontSize: 16,
